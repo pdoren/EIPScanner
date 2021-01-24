@@ -50,7 +50,7 @@ namespace fileObject {
 							static_cast<cip::CipUsint>(transferPacketType)));
 
 			if (transferNumber != _transferNumber) {
-				logWithStateName(LogLevel::ERROR, "Wrong transfer number");
+				logWithStateName(LogLevel::_ERROR, "Wrong transfer number");
 				_handler(cip::GeneralStatusCodes::INVALID_PARAMETER, std::vector<uint8_t>());
 				return false;
 			}
@@ -79,7 +79,7 @@ namespace fileObject {
 					if (_fileContent.size() == _fileSize) {
 						_handler(cip::GeneralStatusCodes::SUCCESS, _fileContent);
 					} else {
-						logWithStateName(LogLevel::ERROR, "Wrong size of the uploaded file");
+						logWithStateName(LogLevel::_ERROR, "Wrong size of the uploaded file");
 						_handler(cip::GeneralStatusCodes::INVALID_PARAMETER, std::vector<uint8_t>());
 					}
 					return false;

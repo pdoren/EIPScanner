@@ -35,7 +35,7 @@ namespace utils {
 				std::make_pair(LogLevel::DEBUG, "[DEBUG] "),
 				std::make_pair(LogLevel::INFO, "[INFO] "),
 				std::make_pair(LogLevel::WARNING, "[WARNING] "),
-				std::make_pair(LogLevel::ERROR, "[ERROR] "),
+				std::make_pair(LogLevel::_ERROR, "[ERROR] "),
 		};
 
 		std::cout << LOGLEVEL_NAMES.at(logLevel) << msg << std::endl;

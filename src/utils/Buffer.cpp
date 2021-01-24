@@ -180,18 +180,28 @@ Buffer &Buffer::operator<<(float val) {
 	Buffer &Buffer::operator<<(sockets::EndPoint v) {
 		std::vector<uint8_t> zeros(8);
 		sockaddr_in addr = v.getAddr();
+#if defined(__LP64__)
+		uint64_t _s_addr = addr.sin_addr.s_addr;
+#else
+		uint32_t _s_addr = addr.sin_addr.s_addr;
+#endif
 		return *this << htons(static_cast<cip::CipInt>(addr.sin_family))
 					 << addr.sin_port
-					 << addr.sin_addr.s_addr
+					 << _s_addr
 					 << zeros;
 	}
 
 	Buffer &Buffer::operator>>(sockets::EndPoint &val) {
 		std::vector<uint8_t> zeros(8);
 		sockaddr_in addr{0};
+#if defined(__LP64__)
+		uint64_t _s_addr = addr.sin_addr.s_addr;
+#else
+		uint32_t _s_addr = addr.sin_addr.s_addr;
+#endif
 		*this >> reinterpret_cast<cip::CipInt&>(addr.sin_family)
 			 >> addr.sin_port
-			 >> addr.sin_addr.s_addr
+			 >> _s_addr
 			 >> zeros;
 
 		addr.sin_family =  htons(addr.sin_family);

@@ -13,7 +13,7 @@ namespace utils {
 
 	enum class LogLevel {
 		OFF = 0,
-		ERROR,
+		_ERROR,
 		WARNING,
 		INFO,
 		DEBUG,

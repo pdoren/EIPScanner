@@ -75,7 +75,7 @@ namespace eipScanner {
 					identityObject.setSerialNumber(serialNumber);
 					identityObject.setProductName(productName.toStdString());
 
-					devices.push_back(IdentityItem{.identityObject=identityObject, .socketAddress=socketAddr});
+					devices.push_back(IdentityItem{identityObject, socketAddr});
 				}
 			}
 		} catch (std::system_error& er) {
@@ -92,7 +92,7 @@ namespace eipScanner {
 		socket->setRecvTimeout(_receiveTimout);
 
 		int broadcast = 1;
-		if(setsockopt(socket->getSocketFd(), SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast)) < 0) {
+		if(setsockopt(socket->getSocketFd(), SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char *>(&broadcast), sizeof(broadcast)) < 0) {
 			throw std::system_error(errno, std::generic_category());
 		}
 

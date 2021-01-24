@@ -2,8 +2,15 @@
 // Created by Aleksey Timin on 11/18/19.
 //
 
-#include <sys/socket.h>
-#include <sys/select.h>
+
+#ifdef  _WIN32
+	#include <winsock2.h>
+#else // Linux and MacOS
+	#include <sys/socket.h>
+	#include <sys/select.h>
+#endif
+
+
 #include <utility>
 #include <algorithm>
 #include <system_error>
@@ -13,7 +20,8 @@ namespace eipScanner {
 namespace sockets {
 
 	BaseSocket::BaseSocket(EndPoint endPoint)
-			: _remoteEndPoint(std::move(endPoint))
+			: _sockedFd(0)
+			, _remoteEndPoint(std::move(endPoint))
 			, _recvTimeout(0)
 			, _beginReceiveHandler() {
 
@@ -25,7 +33,7 @@ namespace sockets {
 
 	BaseSocket::~BaseSocket() = default;
 
-	int BaseSocket::getSocketFd() const {
+	_SOCKET BaseSocket::getSocketFd() const {
 		return _sockedFd;
 	}
 
@@ -52,8 +60,8 @@ namespace sockets {
 
 #elif _WIN32
 		// not sure what the macro is for windows
-		.tv_sec = static_cast<_time64>(recvTimeout.count()/1000),
-		.tv_usec =  static_cast<_time64>((recvTimeout.count()%1000)*1000)
+		static_cast<long>(recvTimeout.count()/1000),
+		static_cast<long>((recvTimeout.count()%1000)*1000)
 #endif
 
 		};

@@ -8,7 +8,13 @@
 #include <vector>
 #include <chrono>
 #include <memory>
-#include <netinet/in.h>
+
+#ifdef _WIN32
+	#include <winsock2.h>
+#else // Linux and MacOS
+	#include <netinet/in.h>
+#endif
+
 #include "UDPSocket.h"
 
 namespace eipScanner {

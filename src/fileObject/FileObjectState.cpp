@@ -90,11 +90,11 @@ namespace fileObject {
 	}
 
 	void FileObjectState::initiateUpload(SessionInfoIf::SPtr si, EndUploadHandler handle) {
-		logWithStateName(LogLevel::ERROR, "Not implemented call");
+		logWithStateName(LogLevel::_ERROR, "Not implemented call");
 	}
 
 	bool FileObjectState::transfer(SessionInfoIf::SPtr si) {
-		logWithStateName(LogLevel::ERROR, "Not implemented call");
+		logWithStateName(LogLevel::_ERROR, "Not implemented call");
 		return false;
 	}
 }

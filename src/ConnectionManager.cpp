@@ -17,6 +17,7 @@
 #include "utils/Logger.h"
 #include "utils/Buffer.h"
 
+
 namespace eipScanner {
 	using namespace cip::connectionManager;
 	using namespace utils;
@@ -38,6 +39,10 @@ namespace eipScanner {
 		: ConnectionManager(std::make_shared<MessageRouter>()){
 	}
 
+#ifdef _WIN32
+#undef max
+#endif
+
 	ConnectionManager::ConnectionManager(const MessageRouter::SPtr& messageRouter)
 		: _messageRouter(messageRouter)
 		, _connectionMap(){
@@ -46,6 +51,10 @@ namespace eipScanner {
 		std::uniform_int_distribution<cip::CipUint> dist(0, std::numeric_limits<cip::CipUint>::max());
 		_incarnationId = dist(rd);
 	}
+
+#ifdef _WIN32
+#define max(a,b)            (((a) > (b)) ? (a) : (b))
+#endif
 
 	ConnectionManager::~ConnectionManager() = default;
 
@@ -161,7 +170,7 @@ namespace eipScanner {
 			auto result = _connectionMap
 					.insert(std::make_pair(response.getT2ONetworkConnectionId(), ioConnection));
 			if (!result.second) {
-				Logger(LogLevel::ERROR)
+				Logger(LogLevel::_ERROR)
 					<< "Connection with T2O_ID=" << response.getT2ONetworkConnectionId()
 					<< " already exists.";
 			}
@@ -253,7 +262,7 @@ namespace eipScanner {
 				if (io != _connectionMap.end()) {
 					io->second->notifyReceiveData(commonPacket.getItems().at(1).getData());
 				} else {
-					Logger(LogLevel::ERROR) << "Received data from unknow connection T2O_ID=" << connectionId;
+					Logger(LogLevel::_ERROR) << "Received data from unknow connection T2O_ID=" << connectionId;
 				}
 			});
 

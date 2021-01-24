@@ -34,7 +34,7 @@ namespace cip {
 			>> reinterpret_cast<CipUsint&>(_generalStatusCode)
 			>> additionalStatusSize;
 
-		if (additionalStatusSize*2 > data.size() - 4) {
+		if (((int) additionalStatusSize)*2 > data.size() - 4) {
 			throw std::runtime_error("Additional status has wrong size");
 		}
 
@@ -79,7 +79,7 @@ namespace cip {
 	}
 
 	void logGeneralAndAdditionalStatus(const MessageRouterResponse &response) {
-		Logger logger(LogLevel::ERROR);
+		Logger logger(LogLevel::_ERROR);
 		logger << "Message Router error=0x"
 			   << std::hex << response.getGeneralStatusCode()
 			   << " additional statuses ";

@@ -27,7 +27,7 @@ int main() {
 			, EPath(ParameterObject::CLASS_ID, 0, MAX_INSTANCE));
 
 	if (response.getGeneralStatusCode() != GeneralStatusCodes::SUCCESS) {
-		Logger(LogLevel::ERROR) << "Failed to read the count of the parameters";
+		Logger(LogLevel::_ERROR) << "Failed to read the count of the parameters";
 		logGeneralAndAdditionalStatus(response);
 		return -1;
 	}
@@ -44,7 +44,7 @@ int main() {
 			, EPath(ParameterObject::CLASS_ID, 0, CLASS_DESCRIPTOR));
 
 	if (response.getGeneralStatusCode() != GeneralStatusCodes::SUCCESS) {
-		Logger(LogLevel::ERROR) << "Failed to read the class descriptor";
+		Logger(LogLevel::_ERROR) << "Failed to read the class descriptor";
 		logGeneralAndAdditionalStatus(response);
 		return -1;
 	}

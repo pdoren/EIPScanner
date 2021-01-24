@@ -106,7 +106,7 @@ bool writeAssemblyObject(std::shared_ptr<eipScanner::SessionInfo> si, int assemb
             , data);
 
     if (response.getGeneralStatusCode() != GeneralStatusCodes::SUCCESS) {
-        Logger(LogLevel::ERROR) << "Failed to write assembly object";
+        Logger(LogLevel::_ERROR) << "Failed to write assembly object";
         logGeneralAndAdditionalStatus(response);
         return 0;
     }
@@ -134,7 +134,7 @@ std::vector<uint8_t> readAssemblyObject(std::shared_ptr<eipScanner::SessionInfo>
             , Yaskawa_EPath(ASSEMBLY_OBJECT, assembly_instance, 0x03));
 
     if (response.getGeneralStatusCode() != GeneralStatusCodes::SUCCESS) {
-        Logger(LogLevel::ERROR) << "Failed to read parameters";
+        Logger(LogLevel::_ERROR) << "Failed to read parameters";
         logGeneralAndAdditionalStatus(response);
         return data_read;
     }

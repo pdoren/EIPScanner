@@ -14,6 +14,12 @@
 
 #include "EndPoint.h"
 
+#ifdef _WIN32
+	typedef SOCKET _SOCKET;
+#else // Linux and MacOS
+	typedef int _SOCKET;
+#endif
+
 namespace eipScanner {
 namespace sockets {
 	class BaseSocket {
@@ -34,7 +40,7 @@ namespace sockets {
 		const std::chrono::milliseconds &getRecvTimeout() const;
 		void setRecvTimeout(const std::chrono::milliseconds &recvTimeout);
 
-		int getSocketFd() const;
+		_SOCKET getSocketFd() const;
 
 		const EndPoint &getRemoteEndPoint() const;
 
@@ -43,7 +49,7 @@ namespace sockets {
 	protected:
 		void BeginReceive();
 
-		int _sockedFd;
+		_SOCKET _sockedFd;
 		EndPoint _remoteEndPoint;
 
 		std::chrono::milliseconds _recvTimeout;

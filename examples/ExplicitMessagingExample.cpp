@@ -38,7 +38,7 @@ int main() {
 
 		Logger(LogLevel::INFO) << "Vendor ID is " << vendorId;
 	} else {
-		Logger(LogLevel::ERROR) << "We got error=0x" << std::hex << response.getGeneralStatusCode();
+		Logger(LogLevel::_ERROR) << "We got error=0x" << std::hex << response.getGeneralStatusCode();
 	}
 
 	//Write attribute
@@ -63,7 +63,7 @@ int main() {
 	if (response.getGeneralStatusCode() == GeneralStatusCodes::SUCCESS) {
 		Logger(LogLevel::INFO) << "Writing is successful";
 	} else {
-		Logger(LogLevel::ERROR) << "We got error=0x" << std::hex << response.getGeneralStatusCode();
+		Logger(LogLevel::_ERROR) << "We got error=0x" << std::hex << response.getGeneralStatusCode();
 	}
 
 

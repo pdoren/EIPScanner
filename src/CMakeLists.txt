@@ -1,5 +1,27 @@
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+function(cxx_library name)
+  # Generate debug library name with a postfix.
+  set_target_properties(${name}
+    PROPERTIES
+    DEBUG_POSTFIX "d")
+  # Set the output directory for build artifacts
+  set_target_properties(${name}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    PDB_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+  # make PDBs match library name
+  get_target_property(pdb_debug_postfix ${name} DEBUG_POSTFIX)
+  set_target_properties(${name}
+    PROPERTIES
+    PDB_NAME "${name}"
+    PDB_NAME_DEBUG "${name}${pdb_debug_postfix}"
+    COMPILE_PDB_NAME "${name}"
+    COMPILE_PDB_NAME_DEBUG "${name}${pdb_debug_postfix}")
+endfunction()
+
 set(SOURCE_FILES
         cip/connectionManager/ForwardCloseRequest.cpp
         cip/connectionManager/ForwardOpenRequest.cpp
@@ -55,13 +77,28 @@ set(SOURCE_FILES
 add_library(EIPScanner SHARED ${SOURCE_FILES})
 add_library(EIPScannerS STATIC ${SOURCE_FILES})
 
+if(WIN32)
+  target_link_libraries(EIPScanner wsock32 ws2_32)
+  target_link_libraries(EIPScannerS wsock32 ws2_32)
+endif()
+
+cxx_library(EIPScanner)
+cxx_library(EIPScannerS)
+
 set_target_properties(
         EIPScanner
         PROPERTIES
         VERSION ${EIPSCANNER_FULL_VERSION}
         SOVERSION ${EIPSCANNER_MAJOR_VERSION})
+		
+if(WIN32)
+  set_target_properties(EIPScanner PROPERTIES ENABLE_EXPORTS 1)
+  set_target_properties(EIPScanner PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1)
+endif()
 
 install(TARGETS EIPScanner EIPScannerS
+		RUNTIME
+			DESTINATION bin
         LIBRARY
             DESTINATION lib
         ARCHIVE

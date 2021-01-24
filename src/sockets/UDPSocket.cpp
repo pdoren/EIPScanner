@@ -3,10 +3,16 @@
 //
 
 #include <system_error>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+#else // Linux and MacOS
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <unistd.h>
+#endif
 
 #include "utils/Logger.h"
 #include "UDPSocket.h"
@@ -37,15 +43,20 @@ namespace sockets {
 
 	UDPSocket::~UDPSocket() {
 		Logger(LogLevel::DEBUG) << "Close socket fd=" << _sockedFd;
+#ifdef _WIN32
+		shutdown(_sockedFd, SD_BOTH);
+		closesocket(_sockedFd);
+#else // Linux and MacOS
 		shutdown(_sockedFd, SHUT_RDWR);
 		close(_sockedFd);
+#endif
 	}
 
 	void UDPSocket::Send(const std::vector <uint8_t> &data) const {
 		Logger(LogLevel::TRACE) << "Send " << data.size() << " bytes from UDP socket #" << _sockedFd << ".";
 
 		auto addr = _remoteEndPoint.getAddr();
-		int count = sendto(_sockedFd, data.data(), data.size(), 0,
+		int count = sendto(_sockedFd, reinterpret_cast<const char*>(data.data()), data.size(), 0,
 				(struct sockaddr *)&addr, sizeof(addr));
 		if (count < data.size()) {
 			throw std::system_error(errno, std::generic_category());
@@ -55,7 +66,7 @@ namespace sockets {
 	std::vector<uint8_t> UDPSocket::Receive(size_t size) const {
 		std::vector<uint8_t> recvBuffer(size);
 
-		auto len = recvfrom(_sockedFd, recvBuffer.data(), recvBuffer.size(), 0, NULL, NULL);
+		auto len = recvfrom(_sockedFd, reinterpret_cast<char*>(recvBuffer.data()), recvBuffer.size(), 0, NULL, NULL);
 		if (len < 0) {
 			throw std::system_error(errno, std::generic_category());
 		}
@@ -67,7 +78,7 @@ namespace sockets {
 		std::vector<uint8_t> recvBuffer(size);
 		struct sockaddr_in addr;
 		socklen_t addrFromLength = sizeof(addr);
-		auto len = recvfrom(_sockedFd, recvBuffer.data(), recvBuffer.size(), 0, (struct sockaddr*)&addr, &addrFromLength);
+		auto len = recvfrom(_sockedFd, reinterpret_cast<char*>(recvBuffer.data()), recvBuffer.size(), 0, (struct sockaddr*)&addr, &addrFromLength);
 		if (len < 0) {
 			throw std::system_error(errno, std::generic_category());
 		}
