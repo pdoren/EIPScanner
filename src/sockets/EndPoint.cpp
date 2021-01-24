@@ -31,10 +31,11 @@ namespace sockets {
 		_addr.sin_port = htons(_port);
 #ifdef _WIN32
 		if (inet_pton(AF_INET, _host.c_str(), &_addr.sin_addr) < 0) {
+			throw std::system_error(WSAGetLastError(), std::generic_category());
 #else
 		if (inet_aton(_host.c_str(), &_addr.sin_addr) < 0) {
-#endif
 			throw std::system_error(errno, std::generic_category());
+#endif
 		}
 	}
 

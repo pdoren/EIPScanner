@@ -31,16 +31,37 @@ namespace eipScanner {
 
 		TCPSocket::TCPSocket(EndPoint endPoint, std::chrono::milliseconds connTimeout)
 				: BaseSocket(std::move(endPoint)) {
+#ifdef _WIN32
+			int iResult;
+			WSADATA wsaData;
+			// Initialize Winsock
+			iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+			if (iResult != 0) {
+				Logger(LogLevel::_ERROR) << "WSAStartup failed: " << iResult;
+			}
+
+#else // Linux and MacOS
+
+#endif
+
 			_sockedFd = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef _WIN32
+			if (_sockedFd == SOCKET_ERROR) {
+				throw std::system_error(WSAGetLastError(), std::generic_category());
+			}
+#else // Linux and MacOS
 			if (_sockedFd < 0) {
 				throw std::system_error(errno, std::generic_category());
 			}
+#endif
+			
+			
 			// Set non-blocking
 #ifdef  _WIN32
 			u_long mode = 1;  // 1 to enable non-blocking socket
 			auto arg = ioctlsocket(_sockedFd, FIONBIO, &mode);
 			if (arg < 0) {
-				throw std::system_error(errno, std::generic_category());
+				throw std::system_error(WSAGetLastError(), std::generic_category());
 			}
 #else // Linux and MacOS
 			auto arg = fcntl(_sockedFd, F_GETFL, NULL);
@@ -76,12 +97,14 @@ namespace eipScanner {
 							int err;
 							socklen_t lon = sizeof(int);
 #ifdef _WIN32
-							if (getsockopt(_sockedFd, SOL_SOCKET, SO_ERROR, (char*)(&err), &lon) < 0) {
+							if (getsockopt(_sockedFd, SOL_SOCKET, SO_ERROR, (char*)(&err), &lon) == SOCKET_ERROR) {
+								throw std::system_error(WSAGetLastError(), std::generic_category());
+							}
 #else // Linux and MacOS
 							if (getsockopt(_sockedFd, SOL_SOCKET, SO_ERROR, (void*)(&err), &lon) < 0) {
-#endif
 								throw std::system_error(errno, std::generic_category());
 							}
+#endif
 							// Check the value returned...
 							if (err) {
 								throw std::system_error(err, std::generic_category());
@@ -100,7 +123,7 @@ namespace eipScanner {
 			mode = 0;  // 0 to disable non-blocking socket
 			arg = ioctlsocket(_sockedFd, FIONBIO, &mode);
 			if (arg < 0) {
-				throw std::system_error(errno, std::generic_category());
+				throw std::system_error(WSAGetLastError(), std::generic_category());
 			}
 #else // Linux and MacOS
 			if ((arg = fcntl(_sockedFd, F_GETFL, NULL)) < 0) {
@@ -124,6 +147,7 @@ namespace eipScanner {
 #ifdef  _WIN32
 			shutdown(_sockedFd, SD_BOTH);
 			closesocket(_sockedFd);
+			WSACleanup();
 #else // Linux and MacOS
 			shutdown(_sockedFd, SHUT_RDWR);
 			close(_sockedFd);
@@ -134,9 +158,16 @@ namespace eipScanner {
 			Logger(LogLevel::TRACE) << "Send " << data.size() << " bytes from TCP socket #" << _sockedFd << ".";
 
 			int count = send(_sockedFd, reinterpret_cast<const char*>(data.data()), data.size(), 0);
+			
+#ifdef _WIN32
+			if (count == SOCKET_ERROR) {
+				throw std::system_error(WSAGetLastError(), std::generic_category());
+			}
+#else // Linux and MacOS
 			if (count < data.size()) {
 				throw std::system_error(errno, std::generic_category());
 			}
+#endif
 		}
 
 		std::vector<uint8_t> TCPSocket::Receive(size_t size) const {
@@ -146,10 +177,16 @@ namespace eipScanner {
 			while (size > count) {
 				auto len = recv(_sockedFd, reinterpret_cast<char*>(recvBuffer.data()) + count, size - count, 0);
 				count += len;
+#ifdef _WIN32
+				if (len == SOCKET_ERROR) {
+					throw std::system_error(WSAGetLastError(), std::generic_category());
+				}
+#else // Linux and MacOS
 				if (len < 0) {
 					throw std::system_error(errno, std::generic_category());
 				}
-
+#endif
+				
 				if (len == 0) {
 					break;
 				}
