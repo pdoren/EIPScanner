@@ -236,7 +236,7 @@ TEST(TestBuffer, ShouldDecodeEndPPoint) {
 }
 
 TEST(TestBuffer, ShouldEncodeEndPPoint) {
-	sockets::EndPoint endPoint("", 0);
+	sockets::EndPoint endPoint("1.1.1.1", 0);
 	std::vector<uint8_t> data =  {
 			0x00, 0x02,
 			0x08, 0xae,

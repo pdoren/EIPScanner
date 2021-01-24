@@ -58,5 +58,9 @@ TEST(TestEPath, ShouldThrowExceptionIfThePathNotComplited) {
 	std::vector<uint8_t> data = {0x21, 0x00,  0x05, 0x00,  0x24};
 	EPath path;
 
+#if _DEBUG
+	EXPECT_DEATH(path.expandPaddedPath(data), "");
+#else
 	EXPECT_THROW(path.expandPaddedPath(data), std::runtime_error);
+#endif
 }

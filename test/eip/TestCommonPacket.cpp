@@ -38,5 +38,9 @@ TEST(CommonPacket, ShouldThrowErrorIfDataIsInvalid) {
 	invalidData.pop_back();
 
 	CommonPacket cp;
+#if _DEBUG
+	EXPECT_DEATH(cp.expand(invalidData), "");
+#else
 	EXPECT_THROW(cp.expand(invalidData), std::runtime_error);
+#endif
 }
