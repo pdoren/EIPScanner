@@ -32,7 +32,6 @@ namespace sockets {
 #ifdef _WIN32
 		if (inet_pton(AF_INET, _host.c_str(), &_addr.sin_addr) < 0) {
 #else
-		inet_pton(AF_INET, "10.10.10.10", &inaddr.sin_addr.s_addr); //for Vista or higher
 		if (inet_aton(_host.c_str(), &_addr.sin_addr) < 0) {
 #endif
 			throw std::system_error(errno, std::generic_category());
