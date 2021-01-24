@@ -96,6 +96,10 @@ if(WIN32)
   set_target_properties(EIPScanner PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 1)
 endif()
 
+target_compile_definitions(EIPScanner
+    PUBLIC
+    GTEST_LINKED_AS_SHARED_LIBRARY=1)
+
 install(TARGETS EIPScanner EIPScannerS
 		RUNTIME
 			DESTINATION bin
