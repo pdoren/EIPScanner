@@ -36,7 +36,7 @@ namespace eipScanner {
 			WSADATA wsaData;
 			// Initialize Winsock
 			iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-			if (iResult != 0) {
+			if (iResult != NO_ERROR) {
 				Logger(LogLevel::_ERROR) << "WSAStartup failed: " << iResult;
 			}
 
@@ -44,7 +44,7 @@ namespace eipScanner {
 
 #endif
 
-			_sockedFd = socket(AF_INET, SOCK_STREAM, 0);
+			_sockedFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 #ifdef _WIN32
 			if (_sockedFd == SOCKET_ERROR) {
 				throw std::system_error(WSAGetLastError(), std::generic_category());
@@ -60,7 +60,7 @@ namespace eipScanner {
 #ifdef  _WIN32
 			u_long mode = 1;  // 1 to enable non-blocking socket
 			auto arg = ioctlsocket(_sockedFd, FIONBIO, &mode);
-			if (arg < 0) {
+			if (arg != NO_ERROR) {
 				throw std::system_error(WSAGetLastError(), std::generic_category());
 			}
 #else // Linux and MacOS
@@ -80,8 +80,15 @@ namespace eipScanner {
 			Logger(LogLevel::DEBUG) << "Connecting to " << _remoteEndPoint.toString();
 			auto addr = _remoteEndPoint.getAddr();
 			auto res = connect(_sockedFd, (struct sockaddr *) &addr, sizeof(addr));
+#ifdef  _WIN32
+			if (res == SOCKET_ERROR) {
+				int errorno = WSAGetLastError();
+				if (errorno == WSAEWOULDBLOCK) {
+#else // Linux and MacOS
 			if (res < 0) {
-				if (errno == EINPROGRESS) {
+				int errorno = errno;
+				if (errorno == EINPROGRESS) {
+#endif
 					do {
 						fd_set myset;
 						auto tv = makePortableInterval(connTimeout);
@@ -90,8 +97,8 @@ namespace eipScanner {
 						FD_SET(_sockedFd, &myset);
 						res = ::select(((int) _sockedFd) + 1, NULL, &myset, NULL, &tv);
 
-						if (res < 0 && errno != EINTR) {
-							throw std::system_error(errno, std::generic_category());
+						if (res < 0 && errorno != EINTR) {
+							throw std::system_error(errorno, std::generic_category());
 						} else if (res > 0) {
 							// Socket selected for write
 							int err;
@@ -102,7 +109,7 @@ namespace eipScanner {
 							}
 #else // Linux and MacOS
 							if (getsockopt(_sockedFd, SOL_SOCKET, SO_ERROR, (void*)(&err), &lon) < 0) {
-								throw std::system_error(errno, std::generic_category());
+								throw std::system_error(errorno, std::generic_category());
 							}
 #endif
 							// Check the value returned...
@@ -115,14 +122,14 @@ namespace eipScanner {
 						}
 					} while (1);
 				} else {
-					throw std::system_error(errno, std::generic_category());
+					throw std::system_error(errorno, std::generic_category());
 				}
 			}
 			// Set to blocking mode again...
 #ifdef  _WIN32
 			mode = 0;  // 0 to disable non-blocking socket
 			arg = ioctlsocket(_sockedFd, FIONBIO, &mode);
-			if (arg < 0) {
+			if (arg != NO_ERROR) {
 				throw std::system_error(WSAGetLastError(), std::generic_category());
 			}
 #else // Linux and MacOS
@@ -179,7 +186,8 @@ namespace eipScanner {
 				count += len;
 #ifdef _WIN32
 				if (len == SOCKET_ERROR) {
-					throw std::system_error(WSAGetLastError(), std::generic_category());
+					int err = WSAGetLastError();
+					throw std::system_error(err, std::generic_category());
 				}
 #else // Linux and MacOS
 				if (len < 0) {

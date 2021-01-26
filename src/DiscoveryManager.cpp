@@ -79,7 +79,11 @@ namespace eipScanner {
 				}
 			}
 		} catch (std::system_error& er) {
+#ifdef _WIN32
+			if (er.code().value() != WSAETIMEDOUT) {
+#else // Linux and MacOS
 			if (er.code().value() != EAGAIN) {
+#endif
 				throw er;
 			}
 		}
@@ -92,9 +96,17 @@ namespace eipScanner {
 		socket->setRecvTimeout(_receiveTimout);
 
 		int broadcast = 1;
-		if(setsockopt(socket->getSocketFd(), SOL_SOCKET, SO_BROADCAST, reinterpret_cast<const char *>(&broadcast), sizeof(broadcast)) < 0) {
+		int err = setsockopt(socket->getSocketFd(), SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&broadcast), sizeof(broadcast));
+
+#ifdef _WIN32
+		if (err == SOCKET_ERROR) {
+			throw std::system_error(WSAGetLastError(), std::generic_category());
+		}
+#else // Linux and MacOS
+		if (err < 0) {
 			throw std::system_error(errno, std::generic_category());
 		}
+#endif
 
 		return socket;
 	}

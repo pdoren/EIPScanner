@@ -12,7 +12,7 @@ using eipScanner::utils::LogLevel;
 int main() {
 	Logger::setLogLevel(LogLevel::DEBUG);
 
-	DiscoveryManager discoveryManager("172.28.255.255", 0xAF12, std::chrono::seconds(1));
+	DiscoveryManager discoveryManager("127.255.255.255", 0xAF12, std::chrono::seconds(1));
 	auto devices = discoveryManager.discover();
 
 	for (auto& device : devices) {

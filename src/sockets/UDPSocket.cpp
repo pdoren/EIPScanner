@@ -38,7 +38,7 @@ namespace sockets {
 		WSADATA wsaData;
 		// Initialize Winsock
 		iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-		if (iResult != 0) {
+		if (iResult != NO_ERROR) {
 			Logger(LogLevel::_ERROR) << "WSAStartup failed: " << iResult;
 		}
 
